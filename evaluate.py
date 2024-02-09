@@ -7,7 +7,7 @@ from data import ResultSubmission
 
 
 """
-LeQua2022 Official evaluation script 
+LeQua2024 Official evaluation script 
 """
 
 def main(args):
@@ -90,9 +90,9 @@ def evaluate_submission(true_prevs: ResultSubmission, predicted_prevs: ResultSub
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='LeQua2022 official evaluation script')
-    parser.add_argument('task', metavar='TASK', type=str, choices=['T1A', 'T1B', 'T2A', 'T2B'],
-                        help='Task name (T1A, T1B, T2A, T2B)')
+    parser = argparse.ArgumentParser(description='LeQua2024 official evaluation script')
+    parser.add_argument('task', metavar='TASK', type=str, choices=['T1', 'T2', 'T3', 'T4'],
+                        help='Task name (T1, T2, T3, T4)')
     parser.add_argument('true_prevalences', metavar='TRUE-PREV-PATH', type=str,
                         help='Path of ground truth prevalence values file (.csv)')
     parser.add_argument('pred_prevalences', metavar='PRED-PREV-PATH', type=str,
