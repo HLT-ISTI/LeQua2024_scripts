@@ -24,36 +24,18 @@ def load_category_map(path):
     return cat2code, code2cat
 
 
-def load_raw_documents(path):
-    """
-    Load raw documents (either labelled or unlabelled) for tasks T2A and T2B. In case the sample is unlabelled,
-    the labels returned are None
-
-    :param path: path to the data sample containing the raw documents
-    :return: a tuple with the documents (list of strings of length `n`) and the labels (a np.ndarray of shape `(n,)` if
-        the sample is labelled, or None if the sample is unlabelled), with `n` the number of instances in the sample
-        (250 for T2A or 1000 for T2B)
-    """
-    df = pd.read_csv(path)
-    documents = list(df["text"].values)
-    labels = None
-    if "label" in df.columns:
-        labels = df["label"].values.astype(np.int)
-    return documents, labels
-
-
 def load_vector_documents(path):
     """
-    Loads vectorized documents (either labelled or unlabelled) for tasks T1A and T1B. In case the sample is unlabelled,
+    Loads vectorized documents. In case the sample is unlabelled,
     the labels returned are None
 
     :param path: path to the data sample containing the raw documents
-    :return: a tuple with the documents (np.ndarray of shape `(n,300)`) and the labels (a np.ndarray of shape `(n,)` if
+    :return: a tuple with the documents (np.ndarray of shape `(n,256)`) and the labels (a np.ndarray of shape `(n,)` if
         the sample is labelled, or None if the sample is unlabelled), with `n` the number of instances in the sample
-        (250 for T1A or 1000 for T1B)
+        (250 for T1 and T4, 1000 for T2, and 200 for T3)
     """
     D = pd.read_csv(path).to_numpy(dtype=np.float)
-    labelled = D.shape[1] == 301
+    labelled = D.shape[1] == 257
     if labelled:
         X, y = D[:,1:], D[:,0].astype(np.int).flatten()
     else:
@@ -84,8 +66,8 @@ def gen_load_samples(path_dir:str, ground_truth_path:str = None, return_id=True,
     :param path_dir: path to the folder containing the samples
     :param ground_truth_path: if indicated, points to the file of ground truth prevalence values for each sample
     :param return_id: set to True (default) to return the sample id
-    :param load_fn: the function that implements the data loading routine (e.g., :meth:`load_vector_documents` for
-        tasks T1A and T2A, or :meth:`load_raw_documents` for tasks T2A and T2B)
+    :param load_fn: the function that implements the data loading routine (only vectors are given in 2024's edition, no
+        need to change the default value)
     :return: each iteration consists of a tuple containing the id of the sample (if `return_id=True`), the data sample
         (in any case), and the prevalence values (if `ground_truth_path` has been specified)
     """
