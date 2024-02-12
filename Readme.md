@@ -216,14 +216,14 @@ as it automatically handles the presence or absence of the labels.
 ## QuaPy
 
 A number of baseline (and advanced) methods for learning to quantify 
-are implemented in the [QuaPy](https://github.com/HLT-ISTI/QuaPy/tree/lequa2022) Python-based, open-source library, 
+are implemented in the [QuaPy](https://github.com/HLT-ISTI/QuaPy/tree/lequa2024) Python-based, open-source library, 
 which also contains implementations of standard evaluation 
 measures and evaluation protocols. 
-For participating in this lab you are welcome to use [QuaPy](https://github.com/HLT-ISTI/QuaPy/tree/lequa2022) and 
+For participating in this lab you are welcome to use [QuaPy](https://github.com/HLT-ISTI/QuaPy/tree/lequa2024) and 
 its tools in any way you might deem suitable (it is not mandatory, though).
 
 All the official baselines for LeQua2024 will be implemented as part of QuaPy.
-Check out the branch [lequa2024](https://github.com/HLT-ISTI/QuaPy/tree/lequa2022) in which
+Check out the branch [lequa2024](https://github.com/HLT-ISTI/QuaPy/tree/lequa2024) in which
 the baseline methods are implemented, and in which you can find many useful
 tools for preparing, running, and evaluating your own experiments.
 
