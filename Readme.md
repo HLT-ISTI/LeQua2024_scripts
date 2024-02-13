@@ -26,32 +26,32 @@ There are four [tasks](https://lequa2024.github.io/tasks/), each with its own da
 - T3: ordinal quantification.
 - T4: binary quantification under covariate shift.
 
-Data for every task is published in three parts (`Txy` is used to denote any task):
-- `Txy.train_dev.zip`: released on Feb 15th, 2024, that contains the training and development data.
-- `Txy.test.zip`: released on May 1st, 2024, that contains the test data, without true prevalence values, for which the participants have to produce their submissons.
-- `Txy.test_prevalences.zip`: released after the end of the challenge, that contains the true prevalence values for the test data.
+Data for every task is published in three parts (`Tn` is used to denote any task):
+- `Tn.train_dev.zip`: released on Feb 15th, 2024, that contains the training and development data.
+- `Tn.test.zip`: released on May 1st, 2024, that contains the test data, without true prevalence values, for which the participants have to produce their submissons.
+- `Tn.test_prevalences.zip`: released after the end of the challenge, that contains the true prevalence values for the test data.
 
-The `Txy.train_dev.zip` file contains:
-- `Txy/public/training_data.txt`: lists the training documents (as pre-processed numerical vectors, so as to focus on quantification and not on text processing) with labels.
+The `Tn.train_dev.zip` file contains:
+- `Tn/public/training_data.txt`: lists the training documents (as pre-processed numerical vectors, so as to focus on quantification and not on text processing) with labels.
   All files are `comma separated values` files in `.txt` format, with a header row, and can be loaded, for example, with the Pandas command `df = pandas.read_csv(filename)`.
   
   Training data consists of 257 columns. The first column, called `label`, contains a zero-based numerical id for the label. The remaining 256 columns, labeled for `0` to `255` are the 256 dimensions of the vectors that represent the content of the documents.
   
-- `Txy/public/label_map.txt`: pairs numerical id of labels with a human-readable name.
+- `Tn/public/label_map.txt`: pairs numerical id of labels with a human-readable name.
 
-- `Txy/public/dev_samples`: directory containing the samples that can be used to develop the quantification methods. Every file in the directory is a sample for which to predict prevalence values of labels. The filename of a sample is a natural number that identifies the sample. The format of the files is the same one of the `training_data.txt` file, except that there is no `label` column.
+- `Tn/public/dev_samples`: directory containing the samples that can be used to develop the quantification methods. Every file in the directory is a sample for which to predict prevalence values of labels. The filename of a sample is a natural number that identifies the sample. The format of the files is the same one of the `training_data.txt` file, except that there is no `label` column.
 
-- `Txy/public/dev_prevalences.txt`: lists the true prevalence values for the development samples. Every row corresponds to a different sample; the `id` column identifies the sample (e.g., id 3 indicates that the prevalence values correspond to sample `3.txt` in the `dev_samples` directory). Columns report the prevalence values for all the labels.
+- `Tn/public/dev_prevalences.txt`: lists the true prevalence values for the development samples. Every row corresponds to a different sample; the `id` column identifies the sample (e.g., id 3 indicates that the prevalence values correspond to sample `3.txt` in the `dev_samples` directory). Columns report the prevalence values for all the labels.
 
-- `Txy/public/dummy_dev_predictions.txt`: an example file that uses the same format of submission files, yet referring to the development samples. A prediction file made following this format, together with the `dev_prevalences.txt` file, can be passed as the argument of the evaluation script (described below) to evaluate a quantification method on the development data.
+- `Tn/public/dummy_dev_predictions.txt`: an example file that uses the same format of submission files, yet referring to the development samples. A prediction file made following this format, together with the `dev_prevalences.txt` file, can be passed as the argument of the evaluation script (described below) to evaluate a quantification method on the development data.
 
-The `Txy.test.zip` file contains:
+The `Tn.test.zip` file contains:
   
-- `Txy/public/test_samples`: directory containing the test samples for which prevalence prediction must be made. Files in the directory have the same format of those in the `dev_samples` directory.
+- `Tn/public/test_samples`: directory containing the test samples for which prevalence prediction must be made. Files in the directory have the same format of those in the `dev_samples` directory.
 
-- `Txy/public/dummy_test_predictions.txt`: shows the format of a submission file for the challenge. Use the format checker (described below) to check the format of your submission file.
+- `Tn/public/dummy_test_predictions.txt`: shows the format of a submission file for the challenge. Use the format checker (described below) to check the format of your submission file.
 
-The `Txy.test_prevalences.zip` contains the true prevalences for the test data.
+The `Tn.test_prevalences.zip` contains the true prevalences for the test data.
 
 ## The evaluation script
 
