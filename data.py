@@ -34,30 +34,30 @@ def load_vector_documents(path):
         the sample is labelled, or None if the sample is unlabelled), with `n` the number of instances in the sample
         (250 for T1 and T4, 1000 for T2, and 200 for T3)
     """
-    D = pd.read_csv(path).to_numpy(dtype=np.float)
+    D = pd.read_csv(path).to_numpy(dtype=float)
     labelled = D.shape[1] == 257
     if labelled:
-        X, y = D[:,1:], D[:,0].astype(np.int).flatten()
+        X, y = D[:,1:], D[:,0].astype(int).flatten()
     else:
         X, y = D, None
     return X, y
 
 
-def __gen_load_samples_with_groudtruth(path_dir:str, return_id:bool, ground_truth_path:str, load_fn):
+def __gen_load_samples_with_groudtruth(path_dir:str, return_id:bool, ground_truth_path:str):
     true_prevs = ResultSubmission.load(ground_truth_path)
     for id, prevalence in true_prevs.iterrows():
-        sample, _ = load_fn(os.path.join(path_dir, f'{id}.txt'))
+        sample, _ = load_vector_documents(os.path.join(path_dir, f'{id}.txt'))
         yield (id, sample, prevalence) if return_id else (sample, prevalence)
 
 
-def __gen_load_samples_without_groudtruth(path_dir:str, return_id:bool, load_fn):
+def __gen_load_samples_without_groudtruth(path_dir:str, return_id:bool):
     nsamples = len(glob(os.path.join(path_dir, f'*.txt')))
     for id in range(nsamples):
-        sample, _ = load_fn(os.path.join(path_dir, f'{id}.txt'))
+        sample, _ = load_vector_documents(os.path.join(path_dir, f'{id}.txt'))
         yield (id, sample) if return_id else sample
 
 
-def gen_load_samples(path_dir:str, ground_truth_path:str = None, return_id=True, load_fn=load_vector_documents):
+def gen_load_samples(path_dir:str, ground_truth_path:str = None, return_id=True):
     """
     A generator that iterates over samples (for which the prevalence values are either known or unknown). In case
     the file containing the ground truth prevalence values is indicated, the iterator returns the prevalence of the
@@ -66,17 +66,15 @@ def gen_load_samples(path_dir:str, ground_truth_path:str = None, return_id=True,
     :param path_dir: path to the folder containing the samples
     :param ground_truth_path: if indicated, points to the file of ground truth prevalence values for each sample
     :param return_id: set to True (default) to return the sample id
-    :param load_fn: the function that implements the data loading routine (only vectors are given in 2024's edition, no
-        need to change the default value)
     :return: each iteration consists of a tuple containing the id of the sample (if `return_id=True`), the data sample
         (in any case), and the prevalence values (if `ground_truth_path` has been specified)
     """
     if ground_truth_path is None:
-        # the generator function returns tuples (docid:str, sample:csr_matrix or str)
-        gen_fn = __gen_load_samples_without_groudtruth(path_dir, return_id, load_fn)
+        # the generator function returns tuples (docid:str, sample:np.ndarray)
+        gen_fn = __gen_load_samples_without_groudtruth(path_dir, return_id)
     else:
-        # the generator function returns tuples (docid:str, sample:csr_matrix or str, prevalence:ndarray)
-        gen_fn = __gen_load_samples_with_groudtruth(path_dir, return_id, ground_truth_path, load_fn)
+        # the generator function returns tuples (docid:str, sample:np.ndarray)
+        gen_fn = __gen_load_samples_with_groudtruth(path_dir, return_id, ground_truth_path)
     for r in gen_fn:
         yield r
 

@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 import os
 from pathlib import Path
-import constants
+from constants import LEQUA2024_TASKS, SAMPLE_SIZE
 from data import ResultSubmission
 
 
@@ -12,7 +12,7 @@ LeQua2024 Official evaluation script
 
 def main(args):
 
-    sample_size = constants.SAMPLE_SIZE[args.task]
+    sample_size = SAMPLE_SIZE[args.task]
 
     true_prev = ResultSubmission.load(args.true_prevalences)
     pred_prev = ResultSubmission.load(args.pred_prevalences)
@@ -22,9 +22,10 @@ def main(args):
     print(f'MAE: {mae:.4f}')
 
     if args.output is not None:
-        with open(args.output, 'wt') as foo:
+        with open(args.output, 'at') as foo:
+            foo.write(f'{args.pred_prevalences}\n')
             foo.write(f'MRAE: {mrae:.4f}\n')
-            foo.write(f'MAE: {mae:.4f}\n')
+            foo.write(f'MAE: {mae:.4f}\n\n')
 
 
 def absolute_error(prevs, prevs_hat):
@@ -91,7 +92,7 @@ def evaluate_submission(true_prevs: ResultSubmission, predicted_prevs: ResultSub
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='LeQua2024 official evaluation script')
-    parser.add_argument('task', metavar='TASK', type=str, choices=['T1', 'T2', 'T3', 'T4'],
+    parser.add_argument('task', metavar='TASK', type=str, choices=LEQUA2024_TASKS,
                         help='Task name (T1, T2, T3, T4)')
     parser.add_argument('true_prevalences', metavar='TRUE-PREV-PATH', type=str,
                         help='Path of ground truth prevalence values file (.csv)')
