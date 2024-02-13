@@ -34,10 +34,10 @@ def load_vector_documents(path):
         the sample is labelled, or None if the sample is unlabelled), with `n` the number of instances in the sample
         (250 for T1 and T4, 1000 for T2, and 200 for T3)
     """
-    D = pd.read_csv(path).to_numpy(dtype=np.float)
+    D = pd.read_csv(path).to_numpy(dtype=float)
     labelled = D.shape[1] == 257
     if labelled:
-        X, y = D[:,1:], D[:,0].astype(np.int).flatten()
+        X, y = D[:,1:], D[:,0].astype(int).flatten()
     else:
         X, y = D, None
     return X, y
