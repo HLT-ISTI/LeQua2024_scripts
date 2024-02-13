@@ -18,7 +18,7 @@ For further details, please visit [the official LeQua2024's site](https://lequa2
 
 ## Datasets
 
-The datasets of the challenge [will be published on Zenodo](https://www.doi.org/).
+The datasets of the challenge [is published on Zenodo](https://doi.org/10.5281/zenodo.10654475).
 
 There are four [tasks](https://lequa2024.github.io/tasks/), each with its own data:
 - T1: binary quantification.
