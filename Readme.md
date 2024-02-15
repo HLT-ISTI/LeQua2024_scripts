@@ -59,7 +59,8 @@ The [evaluation script](evaluate.py) takes two result files, one containing
 the true prevalence values (the ground truth) and another containing the estimated prevalence
 values (a submission file), and computes the estimation error, in terms of the `mean relative absolute error` (MRAE) 
 and `mean absolute error` (MAE) measures for tasks T1, T2, and T4, or in terms of the `mean normalized match distance`
-(MNMD) for T3. 
+(MNMD) and `macro-NMD` for T3. The official metric used for ranking participant systems is MRAE for T1, T2, and T4
+and macro-NMD for T3. 
 
 The script can be run from the command line as follows (use
 `--help` to display information on its use):
