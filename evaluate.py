@@ -1,8 +1,10 @@
 import argparse
+from typing import Callable
+
 import numpy as np
 import os
 from pathlib import Path
-from constants import LEQUA2024_TASKS, SAMPLE_SIZE, VALID_MEASURES, ERROR_TOL
+from constants import LEQUA2024_TASKS, SAMPLE_SIZE, VALID_MEASURES, ORDINAL_MEASURES, ERROR_TOL
 from data import ResultSubmission
 
 
@@ -21,7 +23,9 @@ def main(args):
 
     if args.task == 'T3':
         # ordinal
+        macro_nmd = evaluate_submission(true_prev, pred_prev, sample_size, measure='macro-nmd', average=False)
         mnmd = evaluate_submission(true_prev, pred_prev, sample_size, measure='nmd', average=False)
+        print(f'macro-NMD: {macro_nmd.mean():.5f} ~ {macro_nmd.std():.5f}')
         print(f'MNMD: {mnmd.mean():.5f} ~ {mnmd.std():.5f}')
     else:
         # non-ordinal
@@ -75,9 +79,9 @@ def relative_absolute_error(prevs, prevs_hat, eps=None):
     return (abs(prevs - prevs_hat) / prevs).mean(axis=-1)
 
 
-# -----------------------------------------------------------------------------------------------
-# evaluation measures for T3
-# -----------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# evaluation measures for T3 (the official one is macro-nmd, see evaluate_submission(...metric=macro-nmd))
+# ---------------------------------------------------------------------------------------------------------
 
 def normalized_match_distance(prevs, prevs_hat):
     """
@@ -109,50 +113,98 @@ def match_distance(prevs, prevs_hat):
     return distances[:-1].sum()
 
 
+# -----------------------------------------------------------------------------------------------
+# common functions
+# -----------------------------------------------------------------------------------------------
+
+def eval_metric(true_prevs: np.ndarray, pred_prevs: np.ndarray, metric: Callable, average=True):
+    """
+    Evaluates a set of predicted prevalence values with respect to the true prevalence values in terms of
+    any given evaluation metric.
+
+    :param true_prevs: np.ndarray of shape (n_tests, n_classes), true prevalence values
+    :param pred_prevs: np.ndarray of shape (n_preds, n_classes), predicted prevalence values
+    :param metric: callable function, the metric computing the error between two prevalence vectors
+    :param average: bool, whether to return the average or the array of errors
+    """
+    errors = [metric(p, p_hat) for p, p_hat in zip(true_prevs, pred_prevs)]
+    errors = np.asarray(errors)
+    if average:
+        errors = errors.mean()
+    return errors
+
+
 def evaluate_submission(
-        true_prevs: ResultSubmission,
-        predicted_prevs: ResultSubmission,
+        true_prevs_file: ResultSubmission,
+        predicted_prevs_file: ResultSubmission,
         sample_size: int,
         measure: str,
         average=True):
     """
     Function used to evaluate a result submission file.
 
-    :param true_prevs: ResultSubmission, true prevalence values (provided as part of the LeQua 2024 data)
-    :param predicted_prevs: ResultSubmission, estimated prevalence values (computed by a participant's method)
+    :param true_prevs_file: ResultSubmission, true prevalence values (provided as part of the LeQua 2024 data)
+    :param predicted_prevs_file: ResultSubmission, estimated prevalence values (computed by a participant's method)
     :param sample_size: int, number of instances per sample (depends on the task), see constants.SAMPLE_SIZE
     :param measure: str, either "rae", "ae" for tasks T1, T2, and T4, or "nmd" for T3
     :param average: bool, indicates whether the values have to be averaged before being returned
     :return: an array of error values if `average=False', or a single float if `average=True'
     """
 
-    if len(true_prevs) != len(predicted_prevs):
-        raise ValueError(f'size mismatch, ground truth file has {len(true_prevs)} entries '
-                         f'while the file of predictions contains {len(predicted_prevs)} entries')
-    if true_prevs.n_categories != predicted_prevs.n_categories:
+    ntests = len(true_prevs_file)
+    npreds = len(predicted_prevs_file)
+
+    if ntests != npreds:
+        raise ValueError(f'size mismatch, ground truth file has {ntests} entries '
+                         f'while the file of predictions contains {npreds} entries')
+    if true_prevs_file.n_categories != predicted_prevs_file.n_categories:
         raise ValueError(f'these result files are not comparable since the categories are different: '
-                         f'true={true_prevs.n_categories} categories vs. '
-                         f'predictions={predicted_prevs.n_categories} categories')
+                         f'true={true_prevs_file.n_categories} categories vs. '
+                         f'predictions={predicted_prevs_file.n_categories} categories')
 
-    assert measure in VALID_MEASURES, f'unknown evaluation measure {measure}, valid ones are {VALID_MEASURES}'
+    assert measure in VALID_MEASURES, \
+        f'unknown evaluation measure {measure}, valid ones are {VALID_MEASURES}'
 
-    errors = []
-    for sample_id, true_prevalence in true_prevs.iterrows():
-        pred_prevalence = predicted_prevs.prevalence(sample_id)
+    if measure in ORDINAL_MEASURES:
+        assert true_prevs_file.n_categories == 5, \
+            f'unexpected number of categories (found {true_prevs_file.n_categories}, expected 5) for metric {measure}'
 
-        if measure == 'rae':
-            err = relative_absolute_error(true_prevalence, pred_prevalence, eps=1./(2*sample_size))
-        elif measure == 'ae':
-            err = absolute_error(true_prevalence, pred_prevalence)
-        elif measure == 'nmd': # for T3
-            err = normalized_match_distance(true_prevalence, pred_prevalence)
+    # extrac all prevalence vectors from the ResultSubmission files
+    true_prevs_arr = np.zeros(shape=(ntests, true_prevs_file.n_categories), dtype=float)
+    pred_prevs_arr = np.zeros(shape=(npreds, predicted_prevs_file.n_categories), dtype=float)
+    for sample_id, true_prevalence in true_prevs_file.iterrows():
+        pred_prevalence = predicted_prevs_file.prevalence(sample_id)
+        true_prevs_arr[sample_id] = true_prevalence
+        pred_prevs_arr[sample_id] = pred_prevalence
 
-        errors.append(err)
+    # choose the evaluation metric from its name
+    if measure == 'ae':
+        measure_fn = absolute_error
+    elif measure == 'rae':
+        measure_fn = lambda p, p_hat: relative_absolute_error(p, p_hat, eps=1./(2*sample_size))
+    elif measure in ORDINAL_MEASURES:
+        measure_fn = normalized_match_distance
 
-    errors = np.asarray(errors)
+    if measure != 'macro-nmd':
+        errors = eval_metric(true_prevs_arr, pred_prevs_arr, measure_fn, average=average)
+    else:
+        stars = np.arange(5)+1  # [1,2,3,4,5]
 
-    if average:
-        errors = errors.mean()
+        # computes the average stars rate
+        mean_true_stars = (stars * true_prevs_arr).sum(axis=1)
+
+        # bins results by average stars rate in [1,2), [2,3), [3,4), [4,5]
+        bin_idx = np.digitize(mean_true_stars, bins=stars)
+
+        errors = np.zeros(shape=len(stars)-1, dtype=float)
+        for star in stars[:-1]:
+            select = bin_idx==star
+            bin_true = true_prevs_arr[select]
+            bin_pred = pred_prevs_arr[select]
+            errors[star-1] = eval_metric(bin_true, bin_pred, normalized_match_distance, average=True)
+
+        if average:
+            errors = errors.mean()
 
     return errors
 
