@@ -199,9 +199,10 @@ def evaluate_submission(
         errors = np.zeros(shape=len(stars)-1, dtype=float)
         for star in stars[:-1]:
             select = bin_idx==star
-            bin_true = true_prevs_arr[select]
-            bin_pred = pred_prevs_arr[select]
-            errors[star-1] = eval_metric(bin_true, bin_pred, normalized_match_distance, average=True)
+            if select.any():
+                bin_true = true_prevs_arr[select]
+                bin_pred = pred_prevs_arr[select]
+                errors[star-1] = eval_metric(bin_true, bin_pred, normalized_match_distance, average=True)
 
         if average:
             errors = errors.mean()
