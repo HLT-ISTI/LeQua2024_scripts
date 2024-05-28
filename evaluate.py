@@ -80,7 +80,7 @@ def relative_absolute_error(prevs, prevs_hat, eps=None):
 
 
 # ---------------------------------------------------------------------------------------------------------
-# evaluation measures for T3 (the official one is macro-nmd, see evaluate_submission(...metric=macro-nmd))
+# evaluation measures for T3 (the official one is mean-nmd, see evaluate_submission(...metric=mean-nmd))
 # ---------------------------------------------------------------------------------------------------------
 
 def normalized_match_distance(prevs, prevs_hat):
@@ -88,12 +88,12 @@ def normalized_match_distance(prevs, prevs_hat):
     Computes the Normalized Match Distance; which is the Normalized Distance multiplied by the factor
     `1/(n-1)` to guarantee the measure ranges between 0 (best prediction) and 1 (worst prediction).
 
-    :param prevs: array-like of shape `(n_classes,)` with the true prevalence values
-    :param prevs_hat: array-like of shape `(n_classes,)` with the predicted prevalence values
+    :param prevs: array-like of shape `(n_classes,)` or `(n_instances, n_classes)`  with the true prevalence values
+    :param prevs_hat: array-like of shape `(n_classes,)` or `(n_instances, n_classes)` with the predicted prevalence values
     :return: float in [0,1]
     """
-    n = len(prevs)
-    return (1./(n-1))*match_distance(prevs, prevs_hat)
+    n = prevs.shape[-1]
+    return (1./(n-1))*np.mean(match_distance(prevs, prevs_hat))
 
 
 def match_distance(prevs, prevs_hat):
@@ -101,16 +101,16 @@ def match_distance(prevs, prevs_hat):
     Computes the Match Distance, under the assumption that the cost in mistaking class i with class i+1 is 1 in
     all cases.
 
-    :param prevs: array-like of shape `(n_classes,)` with the true prevalence values
-    :param prevs_hat: array-like of shape `(n_classes,)` with the predicted prevalence values
+    :param prevs: array-like of shape `(n_classes,)` or `(n_instances, n_classes)`  with the true prevalence values
+    :param prevs_hat: array-like of shape `(n_classes,)` or `(n_instances, n_classes)` with the predicted prevalence values
     :return: float
     """
-    P = np.cumsum(prevs)
-    P_hat = np.cumsum(prevs_hat)
-    assert np.isclose(P_hat[-1], 1.0, rtol=ERROR_TOL), \
+    P = np.cumsum(prevs, axis=-1)
+    P_hat = np.cumsum(prevs_hat, axis=-1)
+    assert np.all(np.isclose(P_hat[..., -1], 1.0, rtol=ERROR_TOL)), \
         'arg error in match_distance: the array does not represent a valid distribution'
     distances = np.abs(P-P_hat)
-    return distances[:-1].sum()
+    return distances[..., :-1].sum(axis=-1)
 
 
 # -----------------------------------------------------------------------------------------------
