@@ -25,8 +25,8 @@ def main(args):
         # ordinal
         macro_nmd = evaluate_submission(true_prev, pred_prev, sample_size, measure='macro-nmd', average=False)
         mnmd = evaluate_submission(true_prev, pred_prev, sample_size, measure='nmd', average=False)
-        print(f'macro-NMD: {macro_nmd.mean():.5f} ~ {macro_nmd.std():.5f}')
         print(f'MNMD: {mnmd.mean():.5f} ~ {mnmd.std():.5f}')
+        print(f'macro-NMD: {macro_nmd.mean():.5f} ~ {macro_nmd.std():.5f}')
     else:
         # non-ordinal
         mrae = evaluate_submission(true_prev, pred_prev, sample_size, measure='rae', average=False)
